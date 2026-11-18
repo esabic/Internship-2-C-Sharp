@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.Design;
+using System.Diagnostics.Metrics;
 using System.Dynamic;
 
 namespace LibraryManagementSystem
@@ -7,30 +8,30 @@ namespace LibraryManagementSystem
     internal class Program
     {
 
-        static Dictionary<int, (string firstName, string lastName, DateTime dateOfBirth, List<int> loans)> libraryMembers
-                 = new Dictionary<int, (string firstName, string lastName, DateTime dateOfBirth, List<int> loans)>();
+        static Dictionary<int, (string firstName, string lastName, DateOnly dateOfBirth, List<int> loansOfMember)> libraryMembers
+                 = new Dictionary<int, (string firstName, string lastName, DateOnly dateOfBirth, List<int> loansOFMember)>();
 
-        static Dictionary<int, (string bookTitle, string author, DateTime loanDate, DateTime? returnDate, int overdueDays, decimal lateFee)> loans
-                 = new Dictionary<int, (string bookTitle, string author, DateTime loanDate, DateTime? returnDate, int overdueDays, decimal lateFee)>();
+        static Dictionary<int, (string bookTitle, string author, DateOnly loanDate, DateOnly? returnDate, int overdueDays, decimal lateFee)> loans
+                 = new Dictionary<int, (string bookTitle, string author, DateOnly loanDate, DateOnly? returnDate, int overdueDays, decimal lateFee)>();
 
         static void Main()
         {
-            InicializeStartingData();
+            InitializeStartingData();
             ShowMainMenu();
         }
 
-        static void InicializeStartingData()
+        static void InitializeStartingData()
         {
-            libraryMembers.Add(1, ("Ena", "Sabic", new DateTime(2005, 2, 6),new List<int> {1, 4, 5}));
-            libraryMembers.Add(2, ("Lana", "Sabic", new DateTime(2006, 5, 13), new List<int> { 3, 2 }));
-            libraryMembers.Add(3, ("Zrinka", "Vrgoc", new DateTime(2005, 7, 23), new List<int> { 6 }));
+            libraryMembers.Add(1, ("Ena", "Sabic", new DateOnly(2005, 2, 6), new List<int> { 1, 4, 5 }));
+            libraryMembers.Add(2, ("Lana", "Sabic", new DateOnly(2006, 5, 13), new List<int> { 3, 2 }));
+            libraryMembers.Add(3, ("Zrinka", "Vrgoc", new DateOnly(2005, 7, 23), new List<int> { 6 }));
 
-            loans.Add(1, ("Pride and Prejudice", "Jane Austen", new DateTime(2026, 11, 1), null, 0, 0M));
-            loans.Add(2, ("Death on the Nile", "Agatha Christie", new DateTime(2026, 11, 17), null, 0, 0M));
-            loans.Add(3, ("Angels and Demons", "Dan Brown", new DateTime(2026, 10, 1), new DateTime(2026, 10, 12), 0, 0M));
-            loans.Add(4,("The Silence of the Lambs", "Thomas Harris", new DateTime(2026, 9, 5), new DateTime(2026, 9, 30), 4, 2M));
-            loans.Add(5,("Alice's Adventures in Wonderland", "Lewis Carroll", new DateTime(2026, 8, 2), new DateTime(2026, 8, 24), 1, 0.5M));
-            loans.Add(6, ("Journey to the Center of the Earth", "Jules Verne", new DateTime(2026, 10, 31), null, 0, 0M));
+            loans.Add(1, ("Pride and Prejudice", "Jane Austen", new DateOnly(2026, 11, 1), null, 0, 0M));
+            loans.Add(2, ("Death on the Nile", "Agatha Christie", new DateOnly(2026, 11, 17), null, 0, 0M));
+            loans.Add(3, ("Angels and Demons", "Dan Brown", new DateOnly(2026, 10, 1), new DateOnly(2026, 10, 12), 0, 0M));
+            loans.Add(4, ("The Silence of the Lambs", "Thomas Harris", new DateOnly(2026, 9, 5), new DateOnly(2026, 9, 30), 4, 2M));
+            loans.Add(5, ("Alice's Adventures in Wonderland", "Lewis Carroll", new DateOnly(2026, 8, 2), new DateOnly(2026, 8, 24), 1, 0.5M));
+            loans.Add(6, ("Journey to the Center of the Earth", "Jules Verne", new DateOnly(2026, 10, 31), null, 0, 0M));
 
         }
         static void ShowMainMenu()
@@ -45,7 +46,7 @@ namespace LibraryManagementSystem
                                   "3 - Statistics\n" +
                                   "0 - EXIT\n\n");
 
-                Console.Write("Option:");
+                Console.Write("Option: ");
 
                 if (char.TryParse(Console.ReadLine(), out var option))
                 {
@@ -70,7 +71,7 @@ namespace LibraryManagementSystem
                             Console.WriteLine();
                             Console.WriteLine("Closing application...........");
                             return;
-                            
+
 
                         default:
                             Console.WriteLine();
@@ -83,7 +84,7 @@ namespace LibraryManagementSystem
                     Console.WriteLine();
                     Console.WriteLine("INVALID INPUT! You need to enter a single character (0-3).\n\n");
                 }
-               
+
             }
         }
 
@@ -99,7 +100,7 @@ namespace LibraryManagementSystem
                                   "4 - View all members\n" +
                                   "0 - Return to the main menu\n\n");
 
-                Console.Write("Option:");
+                Console.Write("Option: ");
 
                 if (char.TryParse(Console.ReadLine(), out var option))
                 {
@@ -129,7 +130,7 @@ namespace LibraryManagementSystem
                             Console.WriteLine();
                             Console.WriteLine("Returning to the main menu...........\n");
                             return;
-                            
+
 
                         default:
                             Console.WriteLine();
@@ -149,7 +150,89 @@ namespace LibraryManagementSystem
 
         static void AddMember()
         {
+            string newFirstName = default,
+                   newLastName = default;
 
+            CreateFirstNameLastName(ref newFirstName, ref newLastName);
+
+            DateOnly newDateOfBirth = new DateOnly();
+
+            CreateNewDateOfBirth(ref newDateOfBirth);
+
+            libraryMembers.Add(CreateLibraryMemberId(), (newFirstName, newLastName, newDateOfBirth, new List<int> { }));
+
+
+            Console.WriteLine("\nNew member has been successfully created!\n\n");
+
+        }
+
+        static void CreateNewDateOfBirth(ref DateOnly dateOfBirth)
+        {
+            while (true)
+            {
+                Console.WriteLine();
+                Console.WriteLine("Write a date of birth for new member in format(YYYY-MM-DD): ");
+
+                var input = Console.ReadLine();
+
+                if (DateOnly.TryParseExact(input,"yyyy-MM-dd", out dateOfBirth)&& dateOfBirth < DateOnly.FromDateTime(DateTime.Today))
+                { 
+                    return;
+                }
+
+                else
+                {
+                    Console.WriteLine("Invalid input! You need to write a date of birth of new member in the past in format(YYYY-MM-DD).");
+                }
+
+            }
+        }
+        static void CreateFirstNameLastName(ref string firstName, ref string lastName)
+        {
+            var flag = true;
+
+            while (flag)
+            {
+                Console.WriteLine();
+                Console.WriteLine("Write a name of the new member:");
+
+                firstName = Console.ReadLine();
+
+                if (string.IsNullOrWhiteSpace(firstName))
+                {
+                    Console.WriteLine("Your input can not be empty. Write a name of the new memeber again.");
+
+                }
+                else
+                {
+                    while (true)
+                    {
+                        Console.WriteLine();
+                        Console.WriteLine("Write a last name of the new member:");
+
+                        lastName = Console.ReadLine();
+
+                        if (string.IsNullOrWhiteSpace(lastName))
+                        {
+                            Console.WriteLine("Your input can not be empty. Write a last name of the new memeber again.");
+
+                        }
+                        else
+                        {
+                            flag = false;
+                            break;
+                        }
+                    }
+
+                }
+
+            }
+
+        }
+
+        static int CreateLibraryMemberId()
+        {
+            return libraryMembers.Count == 0 ? 1 : libraryMembers.Keys.Max() + 1;
         }
 
         static void DeleteMember()
@@ -164,199 +247,332 @@ namespace LibraryManagementSystem
 
         static void PrintAllMembers()
         {
-
-        }
-        static void ShowLoansMenu()
-        { 
-
             while (true)
             {
                 Console.WriteLine();
-                Console.WriteLine("1 - Add a new loan\n" +
-                                  "2 - Return a book\n" +
-                                  "3 - Delete a loan\n" +
-                                  "4 - Edit an existing loan\n" +
-                                  "5 - View all loans\n" +
-                                  "6 - Reports and analytics\n" +
-                                  "0 - Return to the main menu\n\n");
+                Console.WriteLine("1 - All members (alphabetically by last name)\n" +
+                                  "2 - Members under 18 years old\n" +
+                                  "3 - Members with unreturned books\n" +
+                                  "0 - Return to the previous menu\n\n");
 
-                Console.Write("Option:");
-
+                Console.Write("Option: ");
                 if (char.TryParse(Console.ReadLine(), out var option))
                 {
                     switch (option)
                     {
                         case '1':
                             Console.WriteLine();
-                            AddLoan();
+                            PrintAllMembersAlphabetically();
                             break;
 
                         case '2':
                             Console.WriteLine();
-                            ReturnBook();
+                            PrintMembersUnder18();
                             break;
 
                         case '3':
                             Console.WriteLine();
-                            DeleteLoan();
-                            break;
-
-                        case '4':
-                            Console.WriteLine();
-                            EditLoan();
-                            break;
-
-                        case '5':
-                            Console.WriteLine();
-                            PrintAllLoans();
-                            break;
-
-                        case '6':
-                            Console.WriteLine();
-                            ShowReportsAndAnalytics();
+                            PrintMembersWithUnreturnedBooks();
                             break;
 
                         case '0':
                             Console.WriteLine();
-                            Console.WriteLine("Returning to the main menu...........\n");
+                            Console.WriteLine();
+                            Console.WriteLine("Returning to the previous menu...........\n");
                             return;
-                          
 
                         default:
+
                             Console.WriteLine();
-                            Console.WriteLine("INVALID OPTION! You need to choose between (0-6).\n\n");
+                            Console.WriteLine("INVALID OPTION! You need to choose between (0-3).\n\n");
                             break;
                     }
                 }
+
                 else
                 {
                     Console.WriteLine();
-                    Console.WriteLine("INVALID INPUT! You need to enter a single character (0-6).\n\n");
+                    Console.WriteLine("INVALID INPUT! You need to enter a single character (0-3).\n\n");
                 }
             }
 
         }
-
-        static void AddLoan()
+        static void PrintAllMembersAlphabetically()
         {
+            var listOfMembers = new List<(int id, string firstName, string lastName, DateOnly dateOfBirth, List<int> loansOfMember)>();
 
-        }
-
-        static void ReturnBook()
-        {
-
-        }
-
-        static void DeleteLoan()
-        {
-
-        }
-
-        static void EditLoan()
-        {
-
-        }
-
-        static void PrintAllLoans()
-        {
-
-        }
-
-        static void ShowReportsAndAnalytics()
-        {
-
-        }
-
-        static void ShowStatistics()
-        {
-
-            while (true)
+            foreach (var libraryMember in libraryMembers)
             {
-                Console.WriteLine();
-                Console.WriteLine("1 - Member with the highest total late fees\n" +
-                                  "2 - Member with the most loans\n" +
-                                  "3 - Most borrowed book title\n" +
-                                  "4 - Total late fees of all members\n" +
-                                  "5 - Monthly loan count chart\n" +
-                                  "0 - Return to the main menu\n\n");
+                
+                    listOfMembers.Add((libraryMember.Key,
+                                       libraryMember.Value.firstName,
+                                       libraryMember.Value.lastName,
+                                       libraryMember.Value.dateOfBirth,
+                                       libraryMember.Value.loansOfMember));
+            }
 
-                Console.Write("Option:");
+            listOfMembers.Sort((member1, member2) => member1.lastName.CompareTo(member2.lastName));
 
-                if (char.TryParse(Console.ReadLine(), out var option))
+            foreach (var member in listOfMembers)
+            {
+
+                    Console.WriteLine($"[{member.id}] {member.lastName}, {member.firstName} ({CalculateAge(member.dateOfBirth)}) - Number of loans:{member.loansOfMember.Count}");
+
+            }
+
+        }
+
+            static void PrintMembersUnder18()
+            {
+                var countMember = 0;
+
+                foreach (var member in libraryMembers)
                 {
-                    switch (option)
+                    if (CalculateAge(member.Value.dateOfBirth) < 18)
                     {
-                        case '1':
-                            Console.WriteLine();
-                            ShowMemberWithHighestLateFees();
-                            break;
+                        Console.WriteLine($"[{member.Key}] {member.Value.lastName}, {member.Value.firstName} ({CalculateAge(member.Value.dateOfBirth)}) - Number of loans:{member.Value.loansOfMember.Count}");
+                        countMember++;
+                    }
 
-                        case '2':
-                            Console.WriteLine();
-                            ShowMemberWithMostLoans();
-                            break;
+                }
+                if (countMember == 0)
+                    Console.WriteLine("\nNobody is under 18.\n\n");
 
-                        case '3':
-                            Console.WriteLine();
-                            ShowMostBorrowedBook();
-                            break;
+            }
 
-                        case '4':
-                            Console.WriteLine();
-                            ShowTotalLateFees();
-                            break;
+            static int CalculateAge(DateOnly dateOfBirth)
+            {
+                DateOnly today = DateOnly.FromDateTime(DateTime.Now);
 
-                        case '5':
-                            Console.WriteLine();
-                            PrintMonthlyLoanChart();
-                            break;
+                var age = today.Year - dateOfBirth.Year;
 
-                        case '0':
-                            Console.WriteLine();
-                            Console.WriteLine("Returning to the main menu...........\n");
-                            return;
+                if (dateOfBirth.Month > today.Month || dateOfBirth.Month == today.Month && dateOfBirth.Day > today.Day)
+                {
+                    age--;
+                }
 
+                return age;
 
-                        default:
-                            Console.WriteLine();
-                            Console.WriteLine("INVALID OPTION! You need to choose between (0-5).\n\n");
-                            break;
+            }
+
+            static void PrintMembersWithUnreturnedBooks()
+            {
+                var noMembersWithUnreturnedBooks = true;
+
+                foreach (var member in libraryMembers)
+                {
+                    var count = 0;
+                    foreach (var loan in member.Value.loansOfMember)
+                    {
+                        if (loans[loan].returnDate == null)
+                        {
+                            count++;
+                            noMembersWithUnreturnedBooks = false;
+                        }
+                    }
+                    if (count > 0)
+                    {
+                        Console.WriteLine($"[{member.Key}] {member.Value.lastName}, {member.Value.firstName} ({CalculateAge(member.Value.dateOfBirth)}) - Number of loans:{member.Value.loansOfMember.Count}");
                     }
                 }
-                else
+
+                if (noMembersWithUnreturnedBooks)
                 {
-                    Console.WriteLine();
-                    Console.WriteLine("INVALID INPUT! You need to enter a single character (0-5).\n\n");
+                    Console.WriteLine("\nAll members has returned books!\n\n");
                 }
             }
 
-        
+            static void ShowLoansMenu()
+            {
+
+                while (true)
+                {
+                    Console.WriteLine();
+                    Console.WriteLine("1 - Add a new loan\n" +
+                                      "2 - Return a book\n" +
+                                      "3 - Delete a loan\n" +
+                                      "4 - Edit an existing loan\n" +
+                                      "5 - View all loans\n" +
+                                      "6 - Reports and analytics\n" +
+                                      "0 - Return to the main menu\n\n");
+
+                    Console.Write("Option: ");
+
+                    if (char.TryParse(Console.ReadLine(), out var option))
+                    {
+                        switch (option)
+                        {
+                            case '1':
+                                Console.WriteLine();
+                                AddLoan();
+                                break;
+
+                            case '2':
+                                Console.WriteLine();
+                                ReturnBook();
+                                break;
+
+                            case '3':
+                                Console.WriteLine();
+                                DeleteLoan();
+                                break;
+
+                            case '4':
+                                Console.WriteLine();
+                                EditLoan();
+                                break;
+
+                            case '5':
+                                Console.WriteLine();
+                                PrintAllLoans();
+                                break;
+
+                            case '6':
+                                Console.WriteLine();
+                                ShowReportsAndAnalytics();
+                                break;
+
+                            case '0':
+                                Console.WriteLine();
+                                Console.WriteLine("Returning to the main menu...........\n");
+                                return;
+
+
+                            default:
+                                Console.WriteLine();
+                                Console.WriteLine("INVALID OPTION! You need to choose between (0-6).\n\n");
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine();
+                        Console.WriteLine("INVALID INPUT! You need to enter a single character (0-6).\n\n");
+                    }
+                }
+
+            }
+
+            static void AddLoan()
+            {
+
+            }
+
+            static void ReturnBook()
+            {
+
+            }
+
+            static void DeleteLoan()
+            {
+
+            }
+
+            static void EditLoan()
+            {
+
+            }
+
+            static void PrintAllLoans()
+            {
+
+            }
+
+            static void ShowReportsAndAnalytics()
+            {
+
+            }
+
+            static void ShowStatistics()
+            {
+
+                while (true)
+                {
+                    Console.WriteLine();
+                    Console.WriteLine("1 - Member with the highest total late fees\n" +
+                                      "2 - Member with the most loans\n" +
+                                      "3 - Most borrowed book title\n" +
+                                      "4 - Total late fees of all members\n" +
+                                      "5 - Monthly loan count chart\n" +
+                                      "0 - Return to the main menu\n\n");
+
+                    Console.Write("Option: ");
+
+                    if (char.TryParse(Console.ReadLine(), out var option))
+                    {
+                        switch (option)
+                        {
+                            case '1':
+                                Console.WriteLine();
+                                ShowMemberWithHighestLateFees();
+                                break;
+
+                            case '2':
+                                Console.WriteLine();
+                                ShowMemberWithMostLoans();
+                                break;
+
+                            case '3':
+                                Console.WriteLine();
+                                ShowMostBorrowedBook();
+                                break;
+
+                            case '4':
+                                Console.WriteLine();
+                                ShowTotalLateFees();
+                                break;
+
+                            case '5':
+                                Console.WriteLine();
+                                PrintMonthlyLoanChart();
+                                break;
+
+                            case '0':
+                                Console.WriteLine();
+                                Console.WriteLine("Returning to the main menu...........\n");
+                                return;
+
+
+                            default:
+                                Console.WriteLine();
+                                Console.WriteLine("INVALID OPTION! You need to choose between (0-5).\n\n");
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine();
+                        Console.WriteLine("INVALID INPUT! You need to enter a single character (0-5).\n\n");
+                    }
+                }
+
+
+            }
+
+            static void ShowMemberWithHighestLateFees()
+            {
+
+            }
+
+            static void ShowMemberWithMostLoans()
+            {
+
+            }
+
+            static void ShowMostBorrowedBook()
+            {
+
+            }
+
+            static void ShowTotalLateFees()
+            {
+
+            }
+
+            static void PrintMonthlyLoanChart()
+            {
+
+            }
+
         }
-
-        static void ShowMemberWithHighestLateFees()
-        {
-
-        }
-
-        static void ShowMemberWithMostLoans()
-        {
-
-        }
-
-        static void ShowMostBorrowedBook()
-        {
-
-        }
-
-        static void ShowTotalLateFees()
-        {
-
-        }
-
-        static void PrintMonthlyLoanChart()
-        {
-
-        }
-
-    }
 }
