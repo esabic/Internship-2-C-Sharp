@@ -6,14 +6,33 @@ namespace LibraryManagementSystem
 {
     internal class Program
     {
-        
+
+        static Dictionary<int, (string firstName, string lastName, DateTime dateOfBirth, List<int> loans)> libraryMembers
+                 = new Dictionary<int, (string firstName, string lastName, DateTime dateOfBirth, List<int> loans)>();
+
+        static Dictionary<int, (string bookTitle, string author, DateTime loanDate, DateTime? returnDate, int overdueDays, decimal lateFee)> loans
+                 = new Dictionary<int, (string bookTitle, string author, DateTime loanDate, DateTime? returnDate, int overdueDays, decimal lateFee)>();
+
         static void Main()
         {
-            
+            InicializeStartingData();
             ShowMainMenu();
         }
 
- 
+        static void InicializeStartingData()
+        {
+            libraryMembers.Add(1, ("Ena", "Sabic", new DateTime(2005, 2, 6),new List<int> {1, 4, 5}));
+            libraryMembers.Add(2, ("Lana", "Sabic", new DateTime(2006, 5, 13), new List<int> { 3, 2 }));
+            libraryMembers.Add(3, ("Zrinka", "Vrgoc", new DateTime(2005, 7, 23), new List<int> { 6 }));
+
+            loans.Add(1, ("Pride and Prejudice", "Jane Austen", new DateTime(2026, 11, 1), null, 0, 0M));
+            loans.Add(2, ("Death on the Nile", "Agatha Christie", new DateTime(2026, 11, 17), null, 0, 0M));
+            loans.Add(3, ("Angels and Demons", "Dan Brown", new DateTime(2026, 10, 1), new DateTime(2026, 10, 12), 0, 0M));
+            loans.Add(4,("The Silence of the Lambs", "Thomas Harris", new DateTime(2026, 9, 5), new DateTime(2026, 9, 30), 4, 2M));
+            loans.Add(5,("Alice's Adventures in Wonderland", "Lewis Carroll", new DateTime(2026, 8, 2), new DateTime(2026, 8, 24), 1, 0.5M));
+            loans.Add(6, ("Journey to the Center of the Earth", "Jules Verne", new DateTime(2026, 10, 31), null, 0, 0M));
+
+        }
         static void ShowMainMenu()
         {
 
