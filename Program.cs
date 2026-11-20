@@ -9,6 +9,9 @@ namespace LibraryManagementSystem
     internal class Program
     {
 
+        const int LoanPeriodInDays = 21;
+        const decimal LateFeePerDay = 0.50M;
+
         static Dictionary<int, (string firstName, string lastName, DateOnly dateOfBirth, List<int> loansOfMember)> libraryMembers
                  = new Dictionary<int, (string firstName, string lastName, DateOnly dateOfBirth, List<int> loansOFMember)>();
 
@@ -324,6 +327,11 @@ namespace LibraryManagementSystem
                             return;
                         }
 
+                        foreach(var loanId in libraryMembers[memberId].loansOfMember)
+                        {
+                            loans.Remove(loanId);
+                        }
+
                         libraryMembers.Remove(memberId);
                         Console.WriteLine("Member has been successfully deleted!");
                         return;
@@ -354,7 +362,7 @@ namespace LibraryManagementSystem
                                                         member.Value.firstName == firstName &&
                                                         member.Value.lastName == lastName);
 
-                if (member.Value.firstName != firstName && member.Value.lastName != lastName)
+                if (member.Value.firstName != firstName || member.Value.lastName != lastName)
                 {
                     Console.WriteLine("Non existing member!");
                     continue;
@@ -373,6 +381,11 @@ namespace LibraryManagementSystem
                     return;
                 }
 
+                foreach (var loanId in libraryMembers[member.Key].loansOfMember)
+                {
+                    loans.Remove(loanId);
+                }
+
                 libraryMembers.Remove(member.Key);
                 Console.WriteLine("Member has been successfully deleted!");
                 return;
@@ -385,9 +398,194 @@ namespace LibraryManagementSystem
         static void EditMember()
         {
 
+            var id = WriteTheId(libraryMembers);
+
+            while (true)
+            {
+                Console.WriteLine();
+                Console.WriteLine("1 - Change the first name of the member\n" +
+                                  "2 - Change the last name of the member\n" +
+                                  "3 - Change date of birth of the member\n" +
+                                  "0 - Return to the previous menu\n\n");
+
+                Console.Write("Option: ");
+                if (char.TryParse(Console.ReadLine(), out var option))
+                {
+                    switch (option)
+                    {
+                        case '1':
+                            Console.WriteLine();
+                            ChangeMembersFirstName(id);
+                            break;
+
+                        case '2':
+                            Console.WriteLine();
+                            ChangeMembersLastName(id);
+                            break;
+
+                        case '3':
+                            Console.WriteLine();
+                            ChangeMembersDateOfBirth(id);
+                            break;
+
+                        case '0':
+
+                            Console.WriteLine();
+                            Console.WriteLine("Returning to the previous menu...........\n");
+                            return;
+
+                        default:
+
+                            Console.WriteLine();
+                            Console.WriteLine("INVALID OPTION! You need to choose between (0-3).\n\n");
+                            break;
+                    }
+                }
+
+                else
+                {
+                    Console.WriteLine();
+                    Console.WriteLine("INVALID INPUT! You need to enter a single character (0-3).\n\n");
+                }
+            }
+
+
 
         }
 
+        static void ChangeMembersFirstName(int membersId)
+        {
+            while (true)
+            {
+
+                Console.WriteLine();
+                Console.Write("Write new first name of the member: ");
+
+                string newFirstName = Console.ReadLine();
+
+                if (!string.IsNullOrWhiteSpace(newFirstName))
+                {
+
+                        Console.Write($"Are you sure you want to change members first name in {newFirstName}? (yes/no): ");
+                        if (Console.ReadLine()?.Trim().ToLower() != "yes")
+                        {
+                            Console.WriteLine("\nEditing cancelled.");
+                            return;
+                        }
+
+                        var libraryMember = libraryMembers[membersId];
+                        libraryMember.firstName = newFirstName;
+                        libraryMembers[membersId] = libraryMember;
+
+                        Console.WriteLine($"Members first name has been successfully changed in {newFirstName}!");
+                        return;
+                    
+                }
+
+
+                Console.WriteLine();
+                Console.WriteLine("INVALID INPUT! Input cannot be empty.\n\n");
+
+
+            }
+        }
+
+        static void ChangeMembersLastName(int membersId)
+        {
+            while (true)
+            {
+
+                Console.WriteLine();
+                Console.Write("Write new last name of the member: ");
+
+                string newLastName = Console.ReadLine();
+
+                if (!string.IsNullOrWhiteSpace(newLastName))
+                {
+
+                    Console.Write($"Are you sure you want to change members last name in {newLastName}? (yes/no): ");
+                    if (Console.ReadLine()?.Trim().ToLower() != "yes")
+                    {
+                        Console.WriteLine("\nEditing cancelled.");
+                        return;
+                    }
+
+                    var libraryMember = libraryMembers[membersId];
+                    libraryMember.lastName = newLastName;
+                    libraryMembers[membersId] = libraryMember;
+
+                    Console.WriteLine($"Members last name has been successfully changed in {newLastName}!");
+                    return;
+
+                }
+
+
+                Console.WriteLine();
+                Console.WriteLine("INVALID INPUT! Input cannot be empty.\n\n");
+
+
+            }
+        }
+
+        static void ChangeMembersDateOfBirth(int membersId)
+        {
+            while (true)
+            {
+
+                Console.WriteLine();
+                Console.Write("Write new date of birth of the member in format (YYYY-MM-DD): ");
+
+                if (DateOnly.TryParseExact(Console.ReadLine(),"yyyy-MM-dd", out DateOnly newDateOfBirth ) && newDateOfBirth < DateOnly.FromDateTime(DateTime.Today))
+                {
+
+                    Console.Write($"Are you sure you want to change members date of birth {newDateOfBirth}? (yes/no): ");
+                    if (Console.ReadLine()?.Trim().ToLower() != "yes")
+                    {
+                        Console.WriteLine("\nEditing cancelled.");
+                        return;
+                    }
+
+                    var libraryMember = libraryMembers[membersId];
+                    libraryMember.dateOfBirth = newDateOfBirth;
+                    libraryMembers[membersId] = libraryMember;
+
+                    Console.WriteLine($"Members date of birth has been successfully changed in {newDateOfBirth}!");
+                    return;
+
+                }
+
+
+                Console.WriteLine();
+                Console.WriteLine("INVALID INPUT! You need to enter new date of birth in the past and in format (YYYY-MM-DD).\n\n");
+
+
+            }
+        }
+
+
+        static int WriteTheId<T>(Dictionary<int, T> libraryMembers)
+        {
+            while (true)
+            {
+                Console.WriteLine();
+                Console.Write("Write the Id: ");
+
+                if (int.TryParse(Console.ReadLine(), out int id))
+                {
+                    if (libraryMembers.ContainsKey(id))
+                    {
+
+                        return id;
+                    }
+
+                    Console.WriteLine("Written id does not exist. Write an existing id.\n");
+                }
+                else
+                {
+                    Console.WriteLine("Invalid input! You need to write a number of id.\n");
+                }
+            }
+        }
 
         static void PrintAllMembers()
         {
@@ -602,11 +800,65 @@ namespace LibraryManagementSystem
 
         }
 
+
         static void ReturnBook()
         {
+            if (loans.Count == 0)
+            {
+                Console.WriteLine("There are no loans.\n");
+                return;
+            }
+
+            int loanId = WriteTheId(loans);
+
+            if (loans[loanId].returnDate!=null)
+            {
+                Console.WriteLine($"Book with id:[{loanId}] is already returned.\n");
+                return;
+            }
+
+            var loan = loans[loanId];
+            var returnDate = ReadReturnDate(loan.loanDate);
+            var overdueDays = CalculateOverdueDays(loanId, returnDate);
+            var lateFee = CalculateLateFee(overdueDays);
+
+            loans[loanId] = (loan.bookTitle, loan.author, loan.loanDate, returnDate, overdueDays, lateFee);
+
+            Console.WriteLine();
+            Console.WriteLine($"Book returned. Overdue days: {overdueDays}, late fee: {lateFee:F2} \n");
+        }
+
+        static DateOnly ReadReturnDate(DateOnly loanDatae)
+        {
+            while (true)
+            {
+                Console.WriteLine();
+                Console.WriteLine("Write the return date (YYYY-MM-DD): ");
+
+                if(DateOnly.TryParseExact(Console.ReadLine(), "yyyy-MM-dd" , out var returnDate) && returnDate >= loanDatae)
+                {
+                    return returnDate;
+                }
+
+                Console.WriteLine("Invalid input! Date must be in format (YYYY-MM-DD) and not before loan date.\n");
+            }
+        }
+        static int CalculateOverdueDays(int loanId, DateOnly? returnDate)
+        {
+            var dueDate = loans[loanId].loanDate.AddDays(LoanPeriodInDays);
+            var endDate = returnDate ?? DateOnly.FromDateTime(DateTime.Today);
+            var overdueDays = endDate.DayNumber - dueDate.DayNumber;
+
+            return overdueDays > 0 ? overdueDays : 0;
 
         }
 
+        static decimal CalculateLateFee(int overdueDays)
+        {
+            return overdueDays * LateFeePerDay;
+        }
+
+       
         static void DeleteLoan()
         {
 
@@ -617,11 +869,319 @@ namespace LibraryManagementSystem
 
         }
 
+       
         static void PrintAllLoans()
         {
+            while (true)
+            {
+                Console.WriteLine();
+                Console.WriteLine("1 - All loans in saved order\n" +
+                                  "2 - Sort loans by loan date\n" +
+                                  "3 - Sort loans by late fee\n" +
+                                  "4 - Display currently unreturned loans\n" +
+                                  "5 - Search loans by title or author\n" +
+                                  "6 - Group loans by borrowing month\n" +
+                                  "0 - Return to the main menu\n\n");
+
+                Console.Write("Option: ");
+
+                if (char.TryParse(Console.ReadLine(), out var option))
+                {
+                    switch (option)
+                    {
+                        case '1':
+                            Console.WriteLine();
+                            DisplayAllLoans();
+                            break;
+
+                        case '2':
+                            Console.WriteLine();
+                            SortLoansByDate();
+                            break;
+
+                        case '3':
+                            Console.WriteLine();
+                            SortLoansByLateFee();
+                            break;
+
+                        case '4':
+                            Console.WriteLine();
+                            DisplayUnreturnedLoans();
+                            break;
+
+                        case '5':
+                            Console.WriteLine();
+                            SearchLoans();
+                            break;
+
+                        case '6':
+                            Console.WriteLine();
+                            GroupLoansByMonth();
+                            break;
+
+                        case '0':
+                            Console.WriteLine();
+                            Console.WriteLine("Returning to the previous menu...........\n");
+                            return;
+
+
+                        default:
+                            Console.WriteLine();
+                            Console.WriteLine("INVALID OPTION! You need to choose between (0-6).\n\n");
+                            break;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine();
+                    Console.WriteLine("INVALID INPUT! You need to enter a single character (0-6).\n\n");
+                }
+            }
+        }
+
+        static void DisplayAllLoans()
+        {
+            if(loans.Count == 0)
+            {
+                Console.WriteLine("There are no loans.\n");
+                return ;
+            }
+
+            Console.WriteLine();
+
+            foreach(var loan in loans)
+            {
+                FormatLoanOutput(loan);
+            }
+
+
 
         }
 
+        static void SortLoansByDate()
+        {
+            if (loans.Count == 0)
+            {
+                Console.WriteLine("There are no loans.\n");
+                return;
+            }
+
+            var typeOfSorting = ChooseTypeOfSorting();
+
+            if(typeOfSorting == 1)
+            {
+                foreach(var loan in loans.OrderBy(loan => loan.Value.loanDate))
+                {
+                    FormatLoanOutput(loan);
+                }
+            }
+
+            else
+            {
+                foreach (var loan in loans.OrderByDescending(loan => loan.Value.loanDate))
+                {
+                    FormatLoanOutput(loan);
+                }
+            }
+
+        }
+
+        static void SortLoansByLateFee()
+        {
+            if (loans.Count == 0)
+            {
+                Console.WriteLine("There are no loans.\n");
+                return;
+            }
+
+            var typeOfSorting = ChooseTypeOfSorting();
+
+            if (typeOfSorting == 1)
+            {
+                foreach (var loan in loans.OrderBy(loan => loan.Value.lateFee))
+                {
+                    FormatLoanOutput(loan);
+                }
+            }
+
+            else
+            {
+                foreach (var loan in loans.OrderByDescending(loan => loan.Value.lateFee))
+                {
+                    FormatLoanOutput(loan);
+                }
+            }
+        }
+
+        static void FormatLoanOutput(KeyValuePair<int, (string bookTitle, string author, DateOnly loanDate, DateOnly? returnDate, int overdueDays, decimal lateFee)> loan)
+        {
+            var returnedText = loan.Value.returnDate == null ? "not returned" : $"returned: {loan.Value.returnDate:yyyy-MM-dd}";
+
+            Console.WriteLine($"[{loan.Key}] \"{loan.Value.bookTitle}\" - {loan.Value.author} | " +
+                              $"loaned: {loan.Value.loanDate:yyyy-MM-dd} | {returnedText} | " +
+                              $"overdue days: {loan.Value.overdueDays} days | late fee: {loan.Value.lateFee}\n");
+        }
+        static int ChooseTypeOfSorting()
+        {
+            while (true)
+            {
+                Console.WriteLine();
+                Console.WriteLine("Choose type of sorting:\n\n");
+                Console.WriteLine("1 - Ascending order\n" +
+                                  "2 - Descending order\n");
+                                  
+
+                Console.Write("Option: ");
+
+                if (char.TryParse(Console.ReadLine(), out var option))
+                {
+                    switch (option)
+                    {
+                        case '1':
+
+                            return 1;
+
+                        case '2':
+
+                            return 2;
+
+                        default:
+                            Console.WriteLine();
+                            Console.WriteLine("INVALID OPTION! You need to choose between (0-3).\n\n");
+                            break;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine();
+                    Console.WriteLine("INVALID INPUT! You need to enter a single character (0-3).\n\n");
+                }
+
+            }
+        }
+
+        static void DisplayUnreturnedLoans()
+        {
+            if (loans.Count == 0)
+            {
+                Console.WriteLine("There are no loans.\n");
+                return;
+            }
+
+            if (loans.Values.Any(loan => loan.returnDate == null))
+            {
+                Console.WriteLine();
+                Console.WriteLine("Unreturned loan(s):\n");
+
+                foreach (var loan in loans)
+                {
+                    if (loan.Value.returnDate == null)
+                    {
+
+                        var membersKey = libraryMembers.FirstOrDefault(member => member.Value.loansOfMember.Contains(loan.Key)).Key;
+
+                        Console.WriteLine($"{libraryMembers[membersKey].firstName} {libraryMembers[membersKey].lastName}: [{loan.Key}] \"{loan.Value.bookTitle}\" - {loan.Value.author} | " +
+                                          $"loaned: {loan.Value.loanDate:yyyy-MM-dd} | not returned | " +
+                                          $"overdue days: {loan.Value.overdueDays} days | late fee: {loan.Value.lateFee}\n");
+                    }
+                }
+
+                return;
+                
+            }
+
+            Console.WriteLine("All loans are returned.\n");
+           
+        }
+
+        static void SearchLoans()
+        {
+            if(loans.Count == 0)
+            {
+                Console.WriteLine("There are no loans.\n");
+                return;
+            }
+
+            while(true)
+            {
+                Console.WriteLine();
+                Console.WriteLine("Write part of the book title or author: ");
+
+                var input = Console.ReadLine()?.Trim();
+
+                if (!string.IsNullOrWhiteSpace(input))
+                {
+                    var foundLoans = 0;
+
+                    foreach(var loan in loans)
+                    {
+                        if(loan.Value.bookTitle.Contains(input, StringComparison.CurrentCultureIgnoreCase)||loan.Value.author.Contains(input, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            FormatLoanOutput(loan);
+                            foundLoans++;
+                        }
+                    }
+
+                    if(foundLoans == 0)
+                    {
+                        Console.WriteLine("No loans match you search.\n");
+                    }
+
+                    return;
+                }
+
+                Console.WriteLine();
+                Console.WriteLine("Invalid input! Input cannot be empty.\n");
+            }
+                    
+
+        }
+
+        static void GroupLoansByMonth()
+        {
+            if (loans.Count == 0)
+            {
+                Console.WriteLine("There are no loans.\n");
+                return;
+            }
+
+            var dates = new List<DateOnly>();
+
+            foreach (var loan in loans.Values)
+            {
+                var date = new DateOnly(loan.loanDate.Year, loan.loanDate.Month, 1);
+
+                if(!dates.Contains(date))
+                {
+                    dates.Add(date);
+                }
+            }
+
+            dates.Sort();
+
+            foreach (var date in dates)
+            {
+                var count = 0;
+                decimal totalFee = 0;
+
+                Console.WriteLine();
+                Console.WriteLine($"{date:yyyy-MM}\n\n");
+
+                foreach (var loan in loans)
+                {
+                    if(loan.Value.loanDate.Year==date.Year && loan.Value.loanDate.Month==date.Month)
+                    {
+                        FormatLoanOutput(loan);
+                        count++;
+                        totalFee += loan.Value.lateFee;
+                    }
+                }
+
+                Console.WriteLine($"Number of loans: {count} | Total late fees: {totalFee:F2}\n");
+            }
+        }
+
+       
         static void ShowReportsAndAnalytics()
         {
 
@@ -723,7 +1283,7 @@ namespace LibraryManagementSystem
 
             var memberWithTopFee = libraryMembers[memberIdWithTotalMaxLateFee];
             Console.WriteLine("Library member with the highest total late fees:");
-            Console.WriteLine($"[{memberIdWithTotalMaxLateFee}] {memberWithTopFee.lastName}, {memberWithTopFee.firstName} " +
+            Console.WriteLine($"\n[{memberIdWithTotalMaxLateFee}] {memberWithTopFee.lastName}, {memberWithTopFee.firstName} " +
                               $"({CalculateAge(memberWithTopFee.dateOfBirth)}) - Number of loans:{memberWithTopFee.loansOfMember.Count}\n");
 
         }
