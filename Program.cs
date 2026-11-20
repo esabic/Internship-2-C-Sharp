@@ -163,7 +163,7 @@ namespace LibraryManagementSystem
 
             CreateNewDateOfBirth(ref newDateOfBirth);
 
-            libraryMembers.Add(CreateLibraryMemberId(), (newFirstName, newLastName, newDateOfBirth, new List<int> { }));
+            libraryMembers.Add(CreateDictionaryId(libraryMembers), (newFirstName, newLastName, newDateOfBirth, new List<int> { }));
 
 
             Console.WriteLine("\nNew member has been successfully created!\n\n");
@@ -234,9 +234,9 @@ namespace LibraryManagementSystem
 
         }
 
-        static int CreateLibraryMemberId()
+        static int CreateDictionaryId<T>(Dictionary<int, T> Dictionary)
         {
-            return libraryMembers.Count == 0 ? 1 : libraryMembers.Keys.Max() + 1;
+            return Dictionary.Count == 0 ? 1 : Dictionary.Keys.Max() + 1;
         }
 
         static void DeleteMember()
@@ -563,7 +563,7 @@ namespace LibraryManagementSystem
         }
 
 
-        static int WriteTheId<T>(Dictionary<int, T> libraryMembers)
+        static int WriteTheId<T>(Dictionary<int, T> dictionary)
         {
             while (true)
             {
@@ -572,7 +572,7 @@ namespace LibraryManagementSystem
 
                 if (int.TryParse(Console.ReadLine(), out int id))
                 {
-                    if (libraryMembers.ContainsKey(id))
+                    if (dictionary.ContainsKey(id))
                     {
 
                         return id;
@@ -776,7 +776,7 @@ namespace LibraryManagementSystem
 
                         case '0':
                             Console.WriteLine();
-                            Console.WriteLine("Returning to the main menu...........\n");
+                            Console.WriteLine("Returning to the previous menu...........\n");
                             return;
 
 
@@ -797,7 +797,96 @@ namespace LibraryManagementSystem
 
         static void AddLoan()
         {
+            if(libraryMembers.Count == 0)
+            {
+                Console.WriteLine("There are no library members.\n");
+                return;
+            }
 
+            var membersId = WriteTheId(libraryMembers);
+
+            string bookTitle = default,
+                   author = default;
+
+            CreateBookTitle(ref bookTitle);
+            CreateAuthor(ref author);
+
+            DateOnly dateOfLoan = new DateOnly();
+
+            CreateLoanDate(ref dateOfLoan);
+
+            var loanId = CreateDictionaryId(loans);
+
+            loans.Add(loanId, (bookTitle, author, dateOfLoan, null, 0, 0M));
+            libraryMembers[membersId].loansOfMember.Add(loanId);
+            
+
+            Console.WriteLine("\nNew loan has been successfully created!");
+            Console.WriteLine($"Return the book by: {dateOfLoan.AddDays(LoanPeriodInDays):yyyy-MM-dd}\n\n");
+
+        }
+
+        static void CreateBookTitle(ref string bookTitle)
+        {
+
+            while (true)
+            {
+                Console.WriteLine();
+                Console.WriteLine("Write a book title:");
+
+                bookTitle = Console.ReadLine().Trim();
+
+                if (!string.IsNullOrWhiteSpace(bookTitle))
+                {
+                    return;
+
+                }
+                Console.WriteLine();
+                Console.WriteLine("Your input can not be empty. Write a book title again.\n");
+
+            }
+        }
+
+        static void CreateAuthor(ref string author)
+        {
+            while (true)
+            {
+                Console.WriteLine();
+                Console.WriteLine("Write a author of the book:");
+
+                author = Console.ReadLine().Trim();
+
+                if (!string.IsNullOrWhiteSpace(author))
+                {
+                    return;
+
+                }
+                Console.WriteLine();
+                Console.WriteLine("Your input can not be empty. Write an author again.\n");
+
+            }
+        }
+
+        static void CreateLoanDate(ref DateOnly dateOfLoan)
+        {
+            while (true)
+            {
+                Console.WriteLine();
+                Console.WriteLine("Write a date of loan in format(YYYY-MM-DD): ");
+
+                var input = Console.ReadLine();
+
+                if (DateOnly.TryParseExact(input, "yyyy-MM-dd", out dateOfLoan) && dateOfLoan <= DateOnly.FromDateTime(DateTime.Today))
+                {
+                    return;
+                }
+
+                else
+                {
+                    Console.WriteLine("Invalid input! You need to write a date loan in format(YYYY-MM-DD) and not in the future.");
+                }
+
+            }
         }
 
 
