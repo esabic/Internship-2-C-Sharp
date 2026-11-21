@@ -1922,9 +1922,10 @@ namespace LibraryManagementSystem
             }
 
             var memberWithTopFee = libraryMembers[memberIdWithTotalMaxLateFee];
+            Console.WriteLine();
             Console.WriteLine("Library member with the highest total late fees:");
-            Console.WriteLine($"\n[{memberIdWithTotalMaxLateFee}] {memberWithTopFee.lastName}, {memberWithTopFee.firstName} " +
-                              $"({CalculateAge(memberWithTopFee.dateOfBirth)}) - Number of loans:{memberWithTopFee.loansOfMember.Count}\n");
+            Console.WriteLine($"[{memberIdWithTotalMaxLateFee}] {memberWithTopFee.lastName}, {memberWithTopFee.firstName} " +
+                              $"({CalculateAge(memberWithTopFee.dateOfBirth)}) - Total late fees:{maxTotalLateFee:F2}\n");
 
         }
         static decimal CalculateTotalLateFee(int memberId)
@@ -1933,7 +1934,7 @@ namespace LibraryManagementSystem
 
             foreach (var loanId in libraryMembers[memberId].loansOfMember)
             {
-                totalLateFee += loans[loanId].lateFee;
+                totalLateFee += CalculateLateFee(CalculateOverdueDays(loanId, loans[loanId].returnDate));
             }
 
             return totalLateFee;
@@ -1959,7 +1960,7 @@ namespace LibraryManagementSystem
                 if (member.Value.loansOfMember.Count == maxNumberOfLoans)
                 {
                     Console.WriteLine($"[{member.Key}] {member.Value.lastName}, {member.Value.firstName} " +
-                                      $"({CalculateAge(member.Value.dateOfBirth)}) - Number of loans:{member.Value.loansOfMember.Count}\n");
+                                      $"({CalculateAge(member.Value.dateOfBirth)}) - Number of loans: {member.Value.loansOfMember.Count}");
                 }
             }
         }
@@ -1989,7 +1990,7 @@ namespace LibraryManagementSystem
             var maxCount = titleCounts.Values.Max();
 
             Console.WriteLine();
-            Console.WriteLine("Most borrowed book title(s):");
+            Console.WriteLine("Most borrowed book title(s):\n");
 
             foreach(var title in titleCounts)
             {
@@ -2022,7 +2023,7 @@ namespace LibraryManagementSystem
             }
 
             Console.WriteLine();
-            Console.WriteLine($"Total late fees of all library members: {totalLateFees:F2}");
+            Console.WriteLine($"Total late fees of all library members: {totalLateFees:F2}\n");
         }
         static void PrintMonthlyLoanChart()
         {
@@ -2054,11 +2055,11 @@ namespace LibraryManagementSystem
 
             foreach( var date in monthlyCounts.OrderBy(date => date.Key))
             {
-                Console.WriteLine($"{date.Key.Year}-{date.Key.Month} {date.Value} {new string('*', date.Value)}\n");
+                Console.WriteLine($"{date.Key:yyyy-MM} {date.Value} {new string('*', date.Value)}");
             }
 
 
-
+            Console.WriteLine();
 
         }
 
