@@ -166,7 +166,7 @@ namespace LibraryManagementSystem
             libraryMembers.Add(CreateDictionaryId(libraryMembers), (newFirstName, newLastName, newDateOfBirth, new List<int> { }));
 
 
-            Console.WriteLine("\nNew member has been successfully created!\n\n");
+            Console.WriteLine("\nNew member has been successfully created!\n");
 
         }
 
@@ -175,7 +175,7 @@ namespace LibraryManagementSystem
             while (true)
             {
                 Console.WriteLine();
-                Console.WriteLine("Write a date of birth for new member in format(YYYY-MM-DD): ");
+                Console.Write("Write a date of birth for new member in format(YYYY-MM-DD): ");
 
                 var input = Console.ReadLine();
 
@@ -200,11 +200,11 @@ namespace LibraryManagementSystem
                 Console.WriteLine();
                 Console.WriteLine("Write a name of the member:");
 
-                firstName = Console.ReadLine();
+                firstName = Console.ReadLine()?.Trim();
 
                 if (string.IsNullOrWhiteSpace(firstName))
                 {
-                    Console.WriteLine("Your input can not be empty. Write a name of the memeber again.");
+                    Console.WriteLine("Your input cannot be empty. Write a name of the member again.");
 
                 }
                 else
@@ -214,11 +214,11 @@ namespace LibraryManagementSystem
                         Console.WriteLine();
                         Console.WriteLine("Write a last name of the member:");
 
-                        lastName = Console.ReadLine();
+                        lastName = Console.ReadLine()?.Trim();
 
                         if (string.IsNullOrWhiteSpace(lastName))
                         {
-                            Console.WriteLine("Your input can not be empty. Write a last name of the memeber again.");
+                            Console.WriteLine("Your input can not be empty. Write a last name of the member again.");
 
                         }
                         else
@@ -303,6 +303,11 @@ namespace LibraryManagementSystem
 
         static void DeleteById()
         {
+            if(libraryMembers.Count == 0)
+            {
+                Console.WriteLine("There are no library members.\n");
+                return;
+            }
 
             while (true)
             {
@@ -316,7 +321,7 @@ namespace LibraryManagementSystem
                     {
                         if (CountNonReturnedBooks(memberId) > 0)
                         {
-                            Console.WriteLine("You can't delete a library member who has non returned book.");
+                            Console.WriteLine("You can't delete a library member who has an unreturned book.");
                             return;
                         }
 
@@ -369,7 +374,7 @@ namespace LibraryManagementSystem
                 }
                 if (CountNonReturnedBooks(member.Key) > 0)
                 {
-                    Console.WriteLine("You can't delete a library member who has non returned book.");
+                    Console.WriteLine("You can't delete a library member who has an unreturned book.");
                     return;
                 }
 
@@ -397,6 +402,11 @@ namespace LibraryManagementSystem
 
         static void EditMember()
         {
+            if(libraryMembers.Count == 0)
+            {
+                Console.WriteLine("There are no library members!\n");
+                return;
+            }
 
             var id = WriteTheId(libraryMembers);
 
@@ -461,12 +471,12 @@ namespace LibraryManagementSystem
                 Console.WriteLine();
                 Console.Write("Write new first name of the member: ");
 
-                string newFirstName = Console.ReadLine();
+                string newFirstName = Console.ReadLine()?.Trim();
 
                 if (!string.IsNullOrWhiteSpace(newFirstName))
                 {
 
-                        Console.Write($"Are you sure you want to change members first name in {newFirstName}? (yes/no): ");
+                        Console.Write($"Are you sure you want to change members first name to {newFirstName}? (yes/no): ");
                         if (Console.ReadLine()?.Trim().ToLower() != "yes")
                         {
                             Console.WriteLine("\nEditing cancelled.");
@@ -477,7 +487,7 @@ namespace LibraryManagementSystem
                         libraryMember.firstName = newFirstName;
                         libraryMembers[membersId] = libraryMember;
 
-                        Console.WriteLine($"Members first name has been successfully changed in {newFirstName}!");
+                        Console.WriteLine($"Members first name has been successfully changed to {newFirstName}!");
                         return;
                     
                 }
@@ -498,12 +508,12 @@ namespace LibraryManagementSystem
                 Console.WriteLine();
                 Console.Write("Write new last name of the member: ");
 
-                string newLastName = Console.ReadLine();
+                string newLastName = Console.ReadLine()?.Trim();
 
                 if (!string.IsNullOrWhiteSpace(newLastName))
                 {
 
-                    Console.Write($"Are you sure you want to change members last name in {newLastName}? (yes/no): ");
+                    Console.Write($"Are you sure you want to change members last name to {newLastName}? (yes/no): ");
                     if (Console.ReadLine()?.Trim().ToLower() != "yes")
                     {
                         Console.WriteLine("\nEditing cancelled.");
@@ -514,7 +524,7 @@ namespace LibraryManagementSystem
                     libraryMember.lastName = newLastName;
                     libraryMembers[membersId] = libraryMember;
 
-                    Console.WriteLine($"Members last name has been successfully changed in {newLastName}!");
+                    Console.WriteLine($"Members last name has been successfully changed to {newLastName}!");
                     return;
 
                 }
@@ -538,7 +548,7 @@ namespace LibraryManagementSystem
                 if (DateOnly.TryParseExact(Console.ReadLine(),"yyyy-MM-dd", out DateOnly newDateOfBirth ) && newDateOfBirth < DateOnly.FromDateTime(DateTime.Today))
                 {
 
-                    Console.Write($"Are you sure you want to change members date of birth {newDateOfBirth}? (yes/no): ");
+                    Console.Write($"Are you sure you want to change members date of birth to {newDateOfBirth:yyyy-MM-dd}? (yes/no): ");
                     if (Console.ReadLine()?.Trim().ToLower() != "yes")
                     {
                         Console.WriteLine("\nEditing cancelled.");
@@ -549,7 +559,7 @@ namespace LibraryManagementSystem
                     libraryMember.dateOfBirth = newDateOfBirth;
                     libraryMembers[membersId] = libraryMember;
 
-                    Console.WriteLine($"Members date of birth has been successfully changed in {newDateOfBirth}!");
+                    Console.WriteLine($"Members date of birth has been successfully changed to {newDateOfBirth:yyyy-MM-dd}!");
                     return;
 
                 }
@@ -619,7 +629,6 @@ namespace LibraryManagementSystem
 
                         case '0':
                             Console.WriteLine();
-                            Console.WriteLine();
                             Console.WriteLine("Returning to the previous menu...........\n");
                             return;
 
@@ -658,7 +667,7 @@ namespace LibraryManagementSystem
             foreach (var member in listOfMembers)
             {
 
-                Console.WriteLine($"[{member.id}] {member.lastName}, {member.firstName} ({CalculateAge(member.dateOfBirth)}) - Number of loans:{member.loansOfMember.Count}");
+                Console.WriteLine($"[{member.id}] {member.lastName}, {member.firstName} ({CalculateAge(member.dateOfBirth)}) - Number of loans: {member.loansOfMember.Count}");
 
             }
 
@@ -672,13 +681,13 @@ namespace LibraryManagementSystem
             {
                 if (CalculateAge(member.Value.dateOfBirth) < 18)
                 {
-                    Console.WriteLine($"[{member.Key}] {member.Value.lastName}, {member.Value.firstName} ({CalculateAge(member.Value.dateOfBirth)}) - Number of loans:{member.Value.loansOfMember.Count}");
+                    Console.WriteLine($"[{member.Key}] {member.Value.lastName}, {member.Value.firstName} ({CalculateAge(member.Value.dateOfBirth)}) - Number of loans: {member.Value.loansOfMember.Count}");
                     countMember++;
                 }
 
             }
             if (countMember == 0)
-                Console.WriteLine("\nNobody is under 18.\n\n");
+                Console.WriteLine("\nNobody is under 18.\n");
 
         }
 
@@ -714,13 +723,13 @@ namespace LibraryManagementSystem
                 }
                 if (count > 0)
                 {
-                    Console.WriteLine($"[{member.Key}] {member.Value.lastName}, {member.Value.firstName} ({CalculateAge(member.Value.dateOfBirth)}) - Number of loans:{member.Value.loansOfMember.Count}");
+                    Console.WriteLine($"[{member.Key}] {member.Value.lastName}, {member.Value.firstName} ({CalculateAge(member.Value.dateOfBirth)}) - Number of loans: {member.Value.loansOfMember.Count}");
                 }
             }
 
             if (noMembersWithUnreturnedBooks)
             {
-                Console.WriteLine("\nAll members has returned books!\n\n");
+                Console.WriteLine("\nAll members has returned books!\n");
             }
         }
 
