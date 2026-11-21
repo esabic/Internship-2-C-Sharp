@@ -1157,10 +1157,170 @@ namespace LibraryManagementSystem
 
         static void EditLoan()
         {
+            if(loans.Count == 0)
+            {
+                Console.WriteLine("There are no loans.\n");
+                return;
+            }
+
+            int loanId = WriteTheId(loans);
+
+            while (true)
+            {
+                Console.WriteLine();
+                Console.WriteLine("1 - Change the book title\n" +
+                                  "2 - Change the author\n" +
+                                  "3 - Change date of loan\n" +
+                                  "4 - Change date of return\n"+
+                                  "0 - Return to the previous menu\n\n");
+
+                Console.Write("Option: ");
+                if (char.TryParse(Console.ReadLine(), out var option))
+                {
+                    switch (option)
+                    {
+                        case '1':
+                            Console.WriteLine();
+                            ChangeBookTitle(loanId);
+                            break;
+
+                        case '2':
+                            Console.WriteLine();
+                            ChangeAuthor(loanId);
+                            break;
+
+                        case '3':
+                            Console.WriteLine();
+                            ChangeLoanDate(loanId);
+                            break;
+
+                        case '4':
+                            Console.WriteLine();
+                            ChangeReturnDate(loanId);
+                            break;
+
+                        case '0':
+
+                            Console.WriteLine();
+                            Console.WriteLine("Returning to the previous menu...........\n");
+                            return;
+
+                        default:
+
+                            Console.WriteLine();
+                            Console.WriteLine("INVALID OPTION! You need to choose between (0-4).\n\n");
+                            break;
+                    }
+                }
+
+                else
+                {
+                    Console.WriteLine();
+                    Console.WriteLine("INVALID INPUT! You need to enter a single character (0-4).\n\n");
+                }
+            }
 
         }
 
-       
+        static void ChangeBookTitle(int loanId)
+        {
+            string newBookTitle = default;
+
+            CreateBookTitle(ref newBookTitle);
+
+            Console.Write($"Are you sure you want to change book title in {newBookTitle}? (yes/no): ");
+            if (Console.ReadLine()?.Trim().ToLower() != "yes")
+            {
+                Console.WriteLine("\nEditing cancelled.");
+                return;
+            }
+
+            var temporaryLoan = loans[loanId];
+            temporaryLoan.bookTitle = newBookTitle;
+            loans[loanId] = temporaryLoan;
+
+            Console.WriteLine($"Book title has been successfully changed in {newBookTitle}!");
+            
+
+        }
+
+        static void ChangeAuthor(int loanId)
+        {
+           string newAuthor = default;
+
+            CreateAuthor(ref newAuthor);
+
+            Console.Write($"Are you sure you want to change author in {newAuthor}? (yes/no): ");
+            if (Console.ReadLine()?.Trim().ToLower() != "yes")
+            {
+                Console.WriteLine("\nEditing cancelled.");
+                return;
+            }
+
+            var temporaryLoan = loans[loanId];
+            temporaryLoan.author = newAuthor;
+            loans[loanId] = temporaryLoan;
+
+            Console.WriteLine($"Author has been successfully changed in {newAuthor}!");
+
+        }
+
+        static void ChangeLoanDate(int loanId)
+        {
+            DateOnly newLoanDate = new DateOnly();
+
+            CreateLoanDate(ref newLoanDate);
+
+            var returnDate = loans[loanId].returnDate;
+
+            if (returnDate != null && newLoanDate > returnDate)
+            {
+                Console.WriteLine("Loan date cannot be after the return date\n");
+                return;
+            }
+
+            Console.Write($"Are you sure you want to change loan date in {newLoanDate}? (yes/no): ");
+            if (Console.ReadLine()?.Trim().ToLower() != "yes")
+            {
+                Console.WriteLine("\nEditing cancelled.");
+                return;
+            }
+
+            var temporaryLoan = loans[loanId];
+            temporaryLoan.loanDate = newLoanDate;
+            loans[loanId] = temporaryLoan;
+
+            temporaryLoan.overdueDays = CalculateOverdueDays(loanId, loans[loanId].returnDate);
+            temporaryLoan.lateFee = CalculateLateFee(temporaryLoan.overdueDays);
+            loans[loanId] = temporaryLoan;
+
+            Console.WriteLine($"Loan date has been successfully changed in {newLoanDate}!");
+
+        }
+
+        static void ChangeReturnDate(int loanId)
+        {
+            DateOnly newReturnDate = new DateOnly();
+
+            newReturnDate = ReadReturnDate(loans[loanId].loanDate);
+
+            Console.Write($"Are you sure you want to change return date in {newReturnDate}? (yes/no): ");
+            if (Console.ReadLine()?.Trim().ToLower() != "yes")
+            {
+                Console.WriteLine("\nEditing cancelled.");
+                return;
+            }
+
+            var temporaryLoan = loans[loanId];
+            temporaryLoan.returnDate = newReturnDate;
+            temporaryLoan.overdueDays = CalculateOverdueDays(loanId, temporaryLoan.returnDate);
+            temporaryLoan.lateFee = CalculateLateFee(temporaryLoan.overdueDays);
+            loans[loanId] = temporaryLoan;
+
+            Console.WriteLine($"Return date has been successfully changed in {newReturnDate}!");
+        }
+
+
         static void PrintAllLoans()
         {
             while (true)
