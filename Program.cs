@@ -1405,8 +1405,6 @@ namespace LibraryManagementSystem
                 FormatLoanOutput(loan);
             }
 
-
-
         }
 
         static void SortLoansByDate()
@@ -1636,8 +1634,190 @@ namespace LibraryManagementSystem
         static void ShowReportsAndAnalytics()
         {
 
+            if(libraryMembers.Count == 0)
+            {
+                Console.WriteLine("There are no library members.\n");
+                return;
+            } 
+
+            int membersId = WriteTheId(libraryMembers);
+
+            while (true)
+            {
+
+                Console.WriteLine();
+                Console.WriteLine("1 - Total number of loans and number of unreturned books\n" +
+                                  "2 - Total late fees\n" +
+                                  "3 - Average loan duration\n" +
+                                  "4 - Loan with the longest overdue\n" +
+                                  "5 - Loans in date range\n" +
+                                  "0 - Return to the previous menu\n\n");
+
+                Console.Write("Option: ");
+
+                if (char.TryParse(Console.ReadLine(), out var option))
+                {
+                    switch (option)
+                    {
+                        case '1':
+                            Console.WriteLine();
+                            ShowLoanCounts(membersId);
+                            break;
+
+                        case '2':
+                            Console.WriteLine();
+                            ShowTotalLateFeeOfMember(membersId);
+                            break;
+
+                        case '3':
+                            Console.WriteLine();
+                            ShowAverageLoanDuration(membersId);
+                            break;
+
+                        case '4':
+                            Console.WriteLine();
+                            ShowLoanWithLongestOverdue(membersId);
+                            break;
+
+                        case '5':
+                            Console.WriteLine();
+                            ShowLoansInDateRange(membersId);
+                            break;
+
+                        case '0':
+                            Console.WriteLine();
+                            Console.WriteLine("Returning to the previous menu...........\n");
+                            return;
+
+
+                        default:
+                            Console.WriteLine();
+                            Console.WriteLine("INVALID OPTION! You need to choose between (0-5).\n\n");
+                            break;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine();
+                    Console.WriteLine("INVALID INPUT! You need to enter a single character (0-5).\n\n");
+                }
+            }
+
         }
 
+        static void ShowLoanCounts(int membersId)
+        {
+
+            Console.WriteLine($"Total number of loans: {libraryMembers[membersId].loansOfMember.Count()} | " +
+                              $"Number of unreturned books: {CountNonReturnedBooks(membersId)}\n");
+        }
+
+        static void ShowTotalLateFeeOfMember(int membersId)
+        {
+
+            Console.WriteLine($"Total late fee of the member: {CalculateTotalLateFee(membersId):F2}\n");
+        }
+
+        static void ShowAverageLoanDuration(int membersId)
+        {
+            var totalDys = 0;
+            var returnedCount = 0;
+
+            foreach(var loanId in libraryMembers[membersId].loansOfMember)
+            {
+                var loan = loans[loanId];
+
+                if(loan.returnDate != null)
+                {
+                    totalDys += loan.returnDate.Value.DayNumber - loan.loanDate.DayNumber;
+                    returnedCount++;
+                }
+            }
+
+            if(returnedCount ==0)
+            {
+                Console.WriteLine("This member has no returned loans.\n");
+                return;
+            }
+            Console.WriteLine($"Average loan duration: {(double) totalDys / returnedCount:F1} days.\n");
+        }
+
+        static void ShowLoanWithLongestOverdue(int membersId)
+        {
+            var maxOverdue = 0;
+            var longestLoanId = 0;
+
+            foreach(var loanId in libraryMembers[membersId].loansOfMember)
+            {
+                var overdue = CalculateOverdueDays(loanId, loans[loanId].returnDate);
+                if(overdue > maxOverdue)
+                {
+                    maxOverdue = overdue;
+                    longestLoanId=loanId;
+                }
+            }
+            if (longestLoanId == 0)
+            {
+                Console.WriteLine("This member has no overdue loans.\n");
+                return;
+            }
+
+            Console.WriteLine($"Loan with the longest overdue {maxOverdue} days:");
+
+            foreach(var loan in loans)
+            {
+                if(loan.Key == longestLoanId)
+                {
+                    FormatLoanOutput(loan);
+                }
+            }
+        }
+
+        static void ShowLoansInDateRange(int membersId)
+        {
+            var fromDate = ReadDate("Write the sart date in format (YYYY-MM-DD)");
+            var toDate = ReadDate("Write the end date in format (YYYY-MM-DD)");
+
+            while(fromDate > toDate)
+            {
+                Console.WriteLine("End date cannot be before end date.\n");
+                toDate = ReadDate("Write the end date in format (YYYY-MM-DD)");
+            }
+
+            var found = 0;
+
+            Console.WriteLine();
+
+            foreach(var loan in loans)
+            {
+                if (libraryMembers[membersId].loansOfMember.Contains(loan.Key) && loan.Value.loanDate >= fromDate && loan.Value.loanDate <= toDate)
+                {
+                    FormatLoanOutput(loan);
+                    found++;
+                }
+            }
+
+            if(found==0)
+            {
+                Console.WriteLine("This member has no loans in that dete range\n");
+            }
+        }
+
+        static DateOnly ReadDate(string prompt)
+        {
+            while(true)
+            {
+                Console.WriteLine();
+                Console.WriteLine(prompt);
+
+                if (DateOnly.TryParseExact(Console.ReadLine(), "yyyy-MM-dd", out var date))
+                {
+                    return date;
+                }
+
+                Console.WriteLine("Invalid input! Date nust be in format (YYYY-MM-DD).\n");
+            }
+        }
         static void ShowStatistics()
         {
 
