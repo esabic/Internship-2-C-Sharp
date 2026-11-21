@@ -950,7 +950,209 @@ namespace LibraryManagementSystem
        
         static void DeleteLoan()
         {
+            while (true)
+            {
+                Console.WriteLine();
+                Console.WriteLine("1 - Delete by Id\n" +
+                                  "2 - Delete all returned loans of a member\n" +
+                                  "3 - Delete all loans with late fee above an amount\n" +
+                                  "0 - Return to the previous menu\n\n");
 
+                Console.Write("Option: ");
+
+                if (char.TryParse(Console.ReadLine(), out var option))
+                {
+                    switch (option)
+                    {
+                        case '1':
+                            Console.WriteLine();
+                            DeleteLoanById();
+                            break;
+
+                        case '2':
+                            Console.WriteLine();
+                            DeleteReturnedLoansOfMember();
+                            break;
+
+                        case '3':
+                            Console.WriteLine();
+                            DeleteLoansWithLateFeeAbove();
+                            break;
+
+                        case '0':
+                            Console.WriteLine();
+                            Console.WriteLine("Returning to the previous menu...........\n");
+                            return;
+
+
+                        default:
+                            Console.WriteLine();
+                            Console.WriteLine("INVALID OPTION! You need to choose between (0-3).\n\n");
+                            break;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine();
+                    Console.WriteLine("INVALID INPUT! You need to enter a single character (0-3).\n\n");
+                }
+            }
+        }
+
+        static void DeleteLoanById()
+        {
+            if(loans.Count == 0)
+            {
+                Console.WriteLine("There are no loans.\n");
+                return;
+            }
+
+            while (true)
+            {
+
+                Console.WriteLine();
+                Console.WriteLine("Enter the loan's ID to delete it: ");
+
+                if (int.TryParse(Console.ReadLine(), out var loansId))
+                {
+                    if (loans.ContainsKey(loansId))
+                    {
+                        if (loans[loansId].returnDate == null)
+                        {
+                            Console.WriteLine("You can't delete a loan with not returned book.");
+                            return;
+                        }
+
+                        Console.Write("Are you sure you want to delete this loan? (yes/no): ");
+                        if (Console.ReadLine()?.Trim().ToLower() != "yes")
+                        {
+                            Console.WriteLine("Deletion cancelled.");
+                            return;
+                        }
+
+                        RemoveLoan(loansId);
+                        
+                        Console.WriteLine("Loan has been successfully deleted!");
+                        return;
+                    }
+                }
+
+
+                Console.WriteLine();
+                Console.WriteLine("INVALID INPUT! You need to enter an existing ID number.\n\n");
+
+
+            }
+        }
+
+        static void RemoveLoan(int loanId)
+        {
+            foreach (var member in libraryMembers)
+            {
+                member.Value.loansOfMember.Remove(loanId);
+            }
+
+            loans.Remove(loanId);
+
+        }
+        static void DeleteReturnedLoansOfMember()
+        {
+            if (libraryMembers.Count == 0)
+            {
+                Console.WriteLine("There are no loans.\n");
+                return;
+            }
+
+            int membersId = WriteTheId(libraryMembers);
+
+            var returnedLoansIds = new List<int>();
+
+            foreach (var loanId in libraryMembers[membersId].loansOfMember)
+            {
+                if (loans[loanId].returnDate!=null)
+                {
+                    returnedLoansIds.Add(loanId);
+                }
+            }
+
+            if(returnedLoansIds.Count == 0)
+            {
+                Console.WriteLine("This member has no retured loans.\n");
+                return;
+            }
+
+            Console.Write("Are you sure you want to delete this loan? (yes/no): ");
+            if (Console.ReadLine()?.Trim().ToLower() != "yes")
+            {
+                Console.WriteLine("Deletion cancelled.");
+                return;
+            }
+
+            foreach (var loanId in returnedLoansIds)
+            {
+                RemoveLoan(loanId);
+            }
+
+            Console.WriteLine($"{returnedLoansIds.Count} loan(s) successfully deleted!\n");
+
+        }
+
+        static void DeleteLoansWithLateFeeAbove()
+        {
+            if (loans.Count == 0)
+            {
+                Console.WriteLine("There are no loans.\n");
+                return;
+            }
+
+            var amount = ReadLateFeeAmount();
+
+            var returnedLoansIds = new List<int>();
+
+            foreach (var loan in loans)
+            {
+                
+                    if (loan.Value.returnDate!=null && loan.Value.lateFee > amount)
+                {
+                    returnedLoansIds.Add(loan.Key);
+                }
+            }
+
+            if (returnedLoansIds.Count == 0)
+            {
+                Console.WriteLine($"There are no returned loans with late fee grather than {amount}.\n");
+                return;
+            }
+
+            Console.Write("Are you sure you want to delete this loan? (yes/no): ");
+            if (Console.ReadLine()?.Trim().ToLower() != "yes")
+            {
+                Console.WriteLine("Deletion cancelled.");
+                return;
+            }
+
+            foreach (var loanId in returnedLoansIds)
+            {
+                RemoveLoan(loanId);
+            }
+
+            Console.WriteLine($"{returnedLoansIds.Count} loan(s) successfully deleted!\n");
+        }
+
+        static decimal ReadLateFeeAmount()
+        {
+            while (true)
+            {
+                Console.WriteLine();
+                Console.Write("Enter the late fee amount in euros: ");
+
+                if (decimal.TryParse(Console.ReadLine(), out decimal value) && value >= 0)
+                {
+                    return value;
+                }
+
+                Console.WriteLine("Invalid input! You need to enter a non-negative number.\n");
+            }
         }
 
         static void EditLoan()
