@@ -831,7 +831,7 @@ namespace LibraryManagementSystem
             
 
             Console.WriteLine("\nNew loan has been successfully created!");
-            Console.WriteLine($"Return the book by: {dateOfLoan.AddDays(LoanPeriodInDays):yyyy-MM-dd}\n\n");
+            Console.WriteLine($"Return the book by: {dateOfLoan.AddDays(LoanPeriodInDays):yyyy-MM-dd}\n");
 
         }
 
@@ -843,7 +843,7 @@ namespace LibraryManagementSystem
                 Console.WriteLine();
                 Console.WriteLine("Write a book title:");
 
-                bookTitle = Console.ReadLine().Trim();
+                bookTitle = Console.ReadLine()?.Trim();
 
                 if (!string.IsNullOrWhiteSpace(bookTitle))
                 {
@@ -861,9 +861,9 @@ namespace LibraryManagementSystem
             while (true)
             {
                 Console.WriteLine();
-                Console.WriteLine("Write a author of the book:");
+                Console.WriteLine("Write an author of the book:");
 
-                author = Console.ReadLine().Trim();
+                author = Console.ReadLine()?.Trim();
 
                 if (!string.IsNullOrWhiteSpace(author))
                 {
@@ -881,7 +881,7 @@ namespace LibraryManagementSystem
             while (true)
             {
                 Console.WriteLine();
-                Console.WriteLine("Write a date of loan in format(YYYY-MM-DD): ");
+                Console.Write("Write a date of loan in format (YYYY-MM-DD): ");
 
                 var input = Console.ReadLine();
 
@@ -892,7 +892,7 @@ namespace LibraryManagementSystem
 
                 else
                 {
-                    Console.WriteLine("Invalid input! You need to write a date loan in format(YYYY-MM-DD) and not in the future.");
+                    Console.WriteLine("Invalid input! You need to write a date loan in format (YYYY-MM-DD) and not in the future.");
                 }
 
             }
@@ -926,14 +926,14 @@ namespace LibraryManagementSystem
             Console.WriteLine($"Book returned. Overdue days: {overdueDays}, late fee: {lateFee:F2} \n");
         }
 
-        static DateOnly ReadReturnDate(DateOnly loanDatae)
+        static DateOnly ReadReturnDate(DateOnly loanDate)
         {
             while (true)
             {
                 Console.WriteLine();
                 Console.WriteLine("Write the return date (YYYY-MM-DD): ");
 
-                if(DateOnly.TryParseExact(Console.ReadLine(), "yyyy-MM-dd" , out var returnDate) && returnDate >= loanDatae)
+                if(DateOnly.TryParseExact(Console.ReadLine(), "yyyy-MM-dd" , out var returnDate) && returnDate >= loanDate)
                 {
                     return returnDate;
                 }
@@ -1028,7 +1028,7 @@ namespace LibraryManagementSystem
                     {
                         if (loans[loansId].returnDate == null)
                         {
-                            Console.WriteLine("You can't delete a loan with not returned book.");
+                            Console.WriteLine("You can't delete a loan with an unreturned book.");
                             return;
                         }
 
@@ -1068,7 +1068,7 @@ namespace LibraryManagementSystem
         {
             if (libraryMembers.Count == 0)
             {
-                Console.WriteLine("There are no loans.\n");
+                Console.WriteLine("There are no library members.\n");
                 return;
             }
 
@@ -1086,11 +1086,11 @@ namespace LibraryManagementSystem
 
             if(returnedLoansIds.Count == 0)
             {
-                Console.WriteLine("This member has no retured loans.\n");
+                Console.WriteLine("This member has no returned loans.\n");
                 return;
             }
 
-            Console.Write("Are you sure you want to delete this loan? (yes/no): ");
+            Console.Write($"Are you sure you want to delete {returnedLoansIds.Count} returned loan(s)? (yes/no): ");
             if (Console.ReadLine()?.Trim().ToLower() != "yes")
             {
                 Console.WriteLine("Deletion cancelled.");
@@ -1129,11 +1129,11 @@ namespace LibraryManagementSystem
 
             if (returnedLoansIds.Count == 0)
             {
-                Console.WriteLine($"There are no returned loans with late fee grather than {amount}.\n");
+                Console.WriteLine($"There are no returned loans with late fee greather than {amount:F2}.\n");
                 return;
             }
 
-            Console.Write("Are you sure you want to delete this loan? (yes/no): ");
+            Console.Write($"Are you sure you want to delete {returnedLoansIds.Count} loan(s)? (yes/no): ");
             if (Console.ReadLine()?.Trim().ToLower() != "yes")
             {
                 Console.WriteLine("Deletion cancelled.");
@@ -1237,7 +1237,7 @@ namespace LibraryManagementSystem
 
             CreateBookTitle(ref newBookTitle);
 
-            Console.Write($"Are you sure you want to change book title in {newBookTitle}? (yes/no): ");
+            Console.Write($"Are you sure you want to change book title to {newBookTitle}? (yes/no): ");
             if (Console.ReadLine()?.Trim().ToLower() != "yes")
             {
                 Console.WriteLine("\nEditing cancelled.");
@@ -1248,7 +1248,7 @@ namespace LibraryManagementSystem
             temporaryLoan.bookTitle = newBookTitle;
             loans[loanId] = temporaryLoan;
 
-            Console.WriteLine($"Book title has been successfully changed in {newBookTitle}!");
+            Console.WriteLine($"Book title has been successfully changed to {newBookTitle}!");
             
 
         }
@@ -1284,11 +1284,11 @@ namespace LibraryManagementSystem
 
             if (returnDate != null && newLoanDate > returnDate)
             {
-                Console.WriteLine("Loan date cannot be after the return date\n");
+                Console.WriteLine("Loan date cannot be after the return date.\n");
                 return;
             }
 
-            Console.Write($"Are you sure you want to change loan date in {newLoanDate}? (yes/no): ");
+            Console.Write($"Are you sure you want to change loan date to {newLoanDate:yyyy-MM-dd}? (yes/no): ");
             if (Console.ReadLine()?.Trim().ToLower() != "yes")
             {
                 Console.WriteLine("\nEditing cancelled.");
@@ -1299,7 +1299,7 @@ namespace LibraryManagementSystem
             temporaryLoan.loanDate = newLoanDate;
             loans[loanId] = temporaryLoan;
 
-            temporaryLoan.overdueDays = CalculateOverdueDays(loanId, loans[loanId].returnDate);
+            temporaryLoan.overdueDays = CalculateOverdueDays(loanId, temporaryLoan.returnDate);
             temporaryLoan.lateFee = CalculateLateFee(temporaryLoan.overdueDays);
             loans[loanId] = temporaryLoan;
 
@@ -1313,7 +1313,7 @@ namespace LibraryManagementSystem
 
             newReturnDate = ReadReturnDate(loans[loanId].loanDate);
 
-            Console.Write($"Are you sure you want to change return date in {newReturnDate}? (yes/no): ");
+            Console.Write($"Are you sure you want to change return date to {newReturnDate:yyyy-MM-dd}? (yes/no): ");
             if (Console.ReadLine()?.Trim().ToLower() != "yes")
             {
                 Console.WriteLine("\nEditing cancelled.");
@@ -1326,7 +1326,7 @@ namespace LibraryManagementSystem
             temporaryLoan.lateFee = CalculateLateFee(temporaryLoan.overdueDays);
             loans[loanId] = temporaryLoan;
 
-            Console.WriteLine($"Return date has been successfully changed in {newReturnDate}!");
+            Console.WriteLine($"Return date has been successfully changed to {newReturnDate}!");
         }
 
 
@@ -1341,7 +1341,7 @@ namespace LibraryManagementSystem
                                   "4 - Display currently unreturned loans\n" +
                                   "5 - Search loans by title or author\n" +
                                   "6 - Group loans by borrowing month\n" +
-                                  "0 - Return to the main menu\n\n");
+                                  "0 - Return to the previous menu\n\n");
 
                 Console.Write("Option: ");
 
@@ -1454,9 +1454,11 @@ namespace LibraryManagementSystem
 
             var typeOfSorting = ChooseTypeOfSorting();
 
+            Console.WriteLine();
+
             if (typeOfSorting == 1)
             {
-                foreach (var loan in loans.OrderBy(loan => loan.Value.lateFee))
+                foreach (var loan in loans.OrderBy(loan => CalculateLateFee(CalculateOverdueDays(loan.Key, loan.Value.returnDate))))
                 {
                     FormatLoanOutput(loan);
                 }
@@ -1464,7 +1466,7 @@ namespace LibraryManagementSystem
 
             else
             {
-                foreach (var loan in loans.OrderByDescending(loan => loan.Value.lateFee))
+                foreach (var loan in loans.OrderByDescending(loan => CalculateLateFee(CalculateOverdueDays(loan.Key, loan.Value.returnDate))))
                 {
                     FormatLoanOutput(loan);
                 }
@@ -1505,14 +1507,14 @@ namespace LibraryManagementSystem
 
                         default:
                             Console.WriteLine();
-                            Console.WriteLine("INVALID OPTION! You need to choose between (0-3).\n\n");
+                            Console.WriteLine("INVALID OPTION! You need to choose between (1-2).\n\n");
                             break;
                     }
                 }
                 else
                 {
                     Console.WriteLine();
-                    Console.WriteLine("INVALID INPUT! You need to enter a single character (0-3).\n\n");
+                    Console.WriteLine("INVALID INPUT! You need to enter a single character (1-2).\n\n");
                 }
 
             }
@@ -1538,9 +1540,8 @@ namespace LibraryManagementSystem
 
                         var membersKey = libraryMembers.FirstOrDefault(member => member.Value.loansOfMember.Contains(loan.Key)).Key;
 
-                        Console.WriteLine($"{libraryMembers[membersKey].firstName} {libraryMembers[membersKey].lastName}: [{loan.Key}] \"{loan.Value.bookTitle}\" - {loan.Value.author} | " +
-                                          $"loaned: {loan.Value.loanDate:yyyy-MM-dd} | not returned | " +
-                                          $"overdue days: {loan.Value.overdueDays} days | late fee: {loan.Value.lateFee}\n");
+                        Console.WriteLine($"{libraryMembers[membersKey].firstName} {libraryMembers[membersKey].lastName}:");
+                        FormatLoanOutput(loan);
                     }
                 }
 
@@ -1582,7 +1583,7 @@ namespace LibraryManagementSystem
 
                     if(foundLoans == 0)
                     {
-                        Console.WriteLine("No loans match you search.\n");
+                        Console.WriteLine("No loans match your search.\n");
                     }
 
                     return;
@@ -1631,7 +1632,7 @@ namespace LibraryManagementSystem
                     {
                         FormatLoanOutput(loan);
                         count++;
-                        totalFee += loan.Value.lateFee;
+                        totalFee += CalculateLateFee(CalculateOverdueDays(loan.Key, loan.Value.returnDate));
                     }
                 }
 
@@ -1717,7 +1718,7 @@ namespace LibraryManagementSystem
         static void ShowLoanCounts(int membersId)
         {
 
-            Console.WriteLine($"Total number of loans: {libraryMembers[membersId].loansOfMember.Count()} | " +
+            Console.WriteLine($"Total number of loans: {libraryMembers[membersId].loansOfMember.Count} | " +
                               $"Number of unreturned books: {CountNonReturnedBooks(membersId)}\n");
         }
 
@@ -1729,7 +1730,7 @@ namespace LibraryManagementSystem
 
         static void ShowAverageLoanDuration(int membersId)
         {
-            var totalDys = 0;
+            var totalDays = 0;
             var returnedCount = 0;
 
             foreach(var loanId in libraryMembers[membersId].loansOfMember)
@@ -1738,7 +1739,7 @@ namespace LibraryManagementSystem
 
                 if(loan.returnDate != null)
                 {
-                    totalDys += loan.returnDate.Value.DayNumber - loan.loanDate.DayNumber;
+                    totalDays += loan.returnDate.Value.DayNumber - loan.loanDate.DayNumber;
                     returnedCount++;
                 }
             }
@@ -1748,7 +1749,7 @@ namespace LibraryManagementSystem
                 Console.WriteLine("This member has no returned loans.\n");
                 return;
             }
-            Console.WriteLine($"Average loan duration: {(double) totalDys / returnedCount:F1} days.\n");
+            Console.WriteLine($"Average loan duration: {(double) totalDays / returnedCount:F1} days.\n");
         }
 
         static void ShowLoanWithLongestOverdue(int membersId)
@@ -1784,13 +1785,13 @@ namespace LibraryManagementSystem
 
         static void ShowLoansInDateRange(int membersId)
         {
-            var fromDate = ReadDate("Write the sart date in format (YYYY-MM-DD)");
-            var toDate = ReadDate("Write the end date in format (YYYY-MM-DD)");
+            var fromDate = ReadDate("Write the start date in format (YYYY-MM-DD): ");
+            var toDate = ReadDate("Write the end date in format (YYYY-MM-DD): ");
 
             while(fromDate > toDate)
             {
-                Console.WriteLine("End date cannot be before end date.\n");
-                toDate = ReadDate("Write the end date in format (YYYY-MM-DD)");
+                Console.WriteLine("End date cannot be before the start date.\n");
+                toDate = ReadDate("Write the end date in format (YYYY-MM-DD): ");
             }
 
             var found = 0;
@@ -1817,14 +1818,14 @@ namespace LibraryManagementSystem
             while(true)
             {
                 Console.WriteLine();
-                Console.WriteLine(prompt);
+                Console.Write(prompt);
 
                 if (DateOnly.TryParseExact(Console.ReadLine(), "yyyy-MM-dd", out var date))
                 {
                     return date;
                 }
 
-                Console.WriteLine("Invalid input! Date nust be in format (YYYY-MM-DD).\n");
+                Console.WriteLine("Invalid input! Date must be in format (YYYY-MM-DD).\n");
             }
         }
         static void ShowStatistics()
